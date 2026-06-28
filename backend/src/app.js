@@ -12,6 +12,9 @@ const authRoutes = require("./routes/auth.routes");
 const movieRoutes = require("./routes/movie.routes");
 const theatreRoutes = require("./routes/theatre.route");
 const showRoutes = require("./routes/show.route");
+const bookingRoutes = require("./routes/booking.routes");
+const paymentRoutes = require("./routes/payment.routes");
+
 
 const app = express();
 
@@ -19,7 +22,16 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
@@ -45,6 +57,13 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/theatres", theatreRoutes);
 
 app.use("/api/shows", showRoutes);
+
+app.use("/api/bookings", bookingRoutes);
+
+
+app.use("/api/payments", paymentRoutes);
+
+
 
 
 

@@ -1,246 +1,293 @@
-# 🎬 Movie Ticket Booking System (Backend)
+# 🎬 Movie Ticket Booking System
 
-A scalable Movie Ticket Booking System backend built using the MERN stack. This project follows a clean MVC architecture and is being developed phase by phase with production-oriented practices.
+A full-stack Movie Ticket Booking System built with **React.js, Node.js, Express.js, MongoDB, JWT Authentication, and Razorpay**.
 
 ---
 
-# 🚀 Tech Stack
+# 🚀 Features
+
+## 👤 User Features
+
+* User Registration
+* User Login & Logout
+* JWT Authentication
+* Protected Routes
+* Browse Movies
+* Movie Details
+* Theatre Selection
+* Show Selection
+* Seat Selection
+* Booking Summary
+* Razorpay Payment Integration
+* My Bookings
+* Booking Confirmation Email
+
+---
+
+## 👨‍💼 Admin Features
+
+* Admin Dashboard
+* Role Based Authentication
+* Movie Management (CRUD)
+* Theatre Management (CRUD)
+* Show Management (CRUD)
+* Booking Management
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+
+* React.js
+* React Router DOM
+* Tailwind CSS
+* Material UI
+* Axios
+* React Hot Toast
+
+---
+
+## Backend
 
 * Node.js
 * Express.js
 * MongoDB
 * Mongoose
 * JWT Authentication
-* Bcrypt
+* bcrypt
 * Cookie Parser
-* CORS
-* Helmet
-* Morgan
-* Compression
-* Express Rate Limit
+* Nodemailer
+* Razorpay
 
 ---
 
-# 📁 Current Folder Structure
+# 📂 Project Structure
 
-```text
-backend/
+## Frontend
+
+```
+src
 │
-├── src/
-│   ├── config/
-│   ├── constants/
-│   ├── controllers/
-│   │   └── auth.controller.js
-│   ├── database/
-│   │   └── db.js
-│   ├── middleware/
-│   │   └── auth.middleware.js
-│   ├── models/
-│   │   └── user.model.js
-│   ├── repositories/
-│   ├── routes/
-│   │   └── auth.routes.js
-│   ├── services/
-│   ├── utils/
-│   ├── validators/
-│   ├── app.js
-│   └── server.js
+├── components
+├── context
+├── pages
+├── routes
+├── services
+└── utils
+```
+
+---
+
+## Backend
+
+```
+backend
 │
-├── uploads/
-├── .env
-├── .gitignore
-├── package.json
-└── README.md
+├── config
+├── controllers
+├── database
+├── middleware
+├── models
+├── routes
+├── services
+└── utils
 ```
 
 ---
 
-# ✅ Features Completed
+# 🔐 Authentication
 
-## Phase 1 — Backend Setup
-
-* Express Server Setup
-* MongoDB Connection
-* Environment Variables
-* CORS Configuration
-* Helmet Security
-* Compression Middleware
-* Morgan Logger
-* Cookie Parser
-* JSON & URL Encoded Parsers
-* Project Folder Structure
+* JWT Authentication
+* Protected Routes
+* Role Based Access
+* Admin Authorization
 
 ---
 
-## Phase 2 — Authentication
+# 🎟 Booking Flow
 
-### User Authentication
-
-* User Registration
-* User Login
-* User Logout
-* Get Logged-in User Profile
-
-### Security
-
-* Password Hashing using Bcrypt
-* JWT Token Generation
-* HTTP Only Cookies
-* Protected Routes Middleware
-* Authorization using Bearer Token
-
----
-
-# 📌 API Endpoints
-
-## Authentication
-
-### Register User
-
-```http
-POST /api/auth/register
 ```
+Register/Login
 
-### Login User
+↓
 
-```http
-POST /api/auth/login
-```
+Browse Movies
 
-### Logout User
+↓
 
-```http
-POST /api/auth/logout
-```
+Select Theatre
 
-### Get Profile
+↓
 
-```http
-GET /api/auth/profile
+Select Show
+
+↓
+
+Choose Seats
+
+↓
+
+Checkout
+
+↓
+
+Payment
+
+↓
+
+Booking Confirmation
 ```
 
 ---
 
-# 📦 Installed Packages
+# 📧 Email Notification
 
-### Production Dependencies
+After successful booking, users receive a confirmation email containing:
+
+* Movie Name
+* Theatre
+* Seats
+* Date
+* Time
+* Total Amount
+
+---
+
+# 📦 Installation
+
+## Clone Repository
 
 ```bash
-express
-mongoose
-dotenv
-bcrypt
-jsonwebtoken
-cookie-parser
-cors
-helmet
-compression
-morgan
-multer
-express-rate-limit
+git clone <repository-url>
 ```
 
-### Development Dependency
+---
+
+## Backend
 
 ```bash
-nodemon
-```
-
----
-
-# 🔐 Authentication Flow
-
-```text
-Client
-   │
-   ▼
-Register / Login
-   │
-   ▼
-Password Hashing (Bcrypt)
-   │
-   ▼
-JWT Token Generation
-   │
-   ▼
-HTTP Only Cookie
-   │
-   ▼
-Protected Middleware
-   │
-   ▼
-Authorized API Access
-```
-
----
-
-# 📂 Current Architecture
-
-```text
-Routes
-   │
-   ▼
-Controllers
-   │
-   ▼
-Models
-   │
-   ▼
-MongoDB
-```
-
-> Repository and Service layers will be added in a future refactoring phase.
-
----
-
-# 🛠️ Environment Variables
-
-Create a `.env` file in the project root.
-
-```env
-PORT=5000
-
-MONGO_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_secret_key
-
-JWT_EXPIRE=7d
-
-NODE_ENV=development
-
-CLIENT_URL=http://localhost:5173
-```
-
----
-
-# ▶️ Run the Project
-
-Install dependencies:
-
-```bash
+cd backend
 npm install
-```
-
-Start the development server:
-
-```bash
 npm run dev
 ```
 
 ---
 
-# 🗺️ Development Roadmap
+## Frontend
 
-* ✅ Backend Setup
-* ✅ Authentication Module
-* ⏳ Movie Management
-* ⏳ Theatre Management
-* ⏳ Show Scheduling
-* ⏳ Seat Selection & Booking
-* ⏳ Payment Integration
-* ⏳ Ticket Generation
-* ⏳ Admin Dashboard
-* ⏳ Deployment
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+# 🔑 Environment Variables
+
+Backend `.env`
+
+```
+PORT=
+
+MONGO_URI=
+
+JWT_SECRET=
+
+JWT_EXPIRE=
+
+RAZORPAY_KEY_ID=
+
+RAZORPAY_KEY_SECRET=
+
+EMAIL_USER=
+
+EMAIL_PASS=
+```
+
+---
+
+# 📌 APIs
+
+## Authentication
+
+* POST /api/auth/register
+* POST /api/auth/login
+* POST /api/auth/logout
+* GET /api/auth/profile
+
+---
+
+## Movies
+
+* GET /api/movies
+* POST /api/movies
+* PUT /api/movies/:id
+* DELETE /api/movies/:id
+
+---
+
+## Theatres
+
+* GET /api/theatres
+* POST /api/theatres
+* PUT /api/theatres/:id
+* DELETE /api/theatres/:id
+
+---
+
+## Shows
+
+* GET /api/shows
+* POST /api/shows
+* PUT /api/shows/:id
+* DELETE /api/shows/:id
+
+---
+
+## Bookings
+
+* POST /api/bookings
+* GET /api/bookings/my-bookings
+* GET /api/bookings/:id
+
+---
+
+## Payments
+
+* POST /api/payment/create-order
+* POST /api/payment/verify
+
+---
+
+# 📸 Screenshots
+
+* Home Page
+* Login
+* Register
+* Movie Details
+* Seat Selection
+* Checkout
+* Payment
+* Admin Dashboard
+
+(Add screenshots after completing the UI.)
+
+---
+
+# 🚀 Future Enhancements
+
+* Image Upload (Cloudinary/ImageKit)
+* QR Code Ticket
+* PDF Ticket Download
+* Search & Filters
+* Booking Analytics
+* Revenue Dashboard
+* Responsive Admin Panel
+* User Profile
+* Wishlist
+* Reviews & Ratings
 
 ---
 
@@ -248,4 +295,8 @@ npm run dev
 
 **Prafull Singh**
 
-This project is being built step by step to demonstrate full-stack backend development, authentication, clean project structure, and scalable API design.
+B.Tech Student | Full Stack Developer | DSA Enthusiast
+
+---
+
+## ⭐ If you like this project, consider giving it a star on GitHub.
