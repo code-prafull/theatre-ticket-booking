@@ -1,18 +1,17 @@
+// File Path: controllers/booking.controller.js
 const Booking = require("../models/booking.model");
 const Show = require("../models/show.model");
-
 const User = require("../models/user.model");
 const sendBookingMail = require("../utils/sendBookingMail");
 
+// 1. CREATE NEW BOOKING TRANSACTION LOG
 const createBooking = async (req, res) => {
   try {
     const { showId, seats } = req.body;
-
     const userId = req.user._id;
 
     // Find Show
     const show = await Show.findById(showId);
-
     if (!show) {
       return res.status(404).json({
         success: false,
@@ -32,7 +31,7 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Total Amount
+    // Total Amount Calculations
     const totalAmount = seats.length * show.ticketPrice;
 
     // Create Booking
@@ -43,28 +42,35 @@ const createBooking = async (req, res) => {
       totalAmount,
     });
 
-    // Update Show
+    // Update Show seats layout tracking indices array
     show.bookedSeats.push(...seats);
     await show.save();
 
-    // Populate Movie & Theatre
+    // Populate Movie & Theatre inside independent show references
     await show.populate("movie theatre");
 
-    // Send Confirmation Email
+    // Send Confirmation Email safely
     try {
       const user = await User.findById(userId);
-
       await sendBookingMail(user, booking, show);
-
       console.log("✅ Booking confirmation email sent");
     } catch (mailError) {
       console.log("❌ Email Error:", mailError.message);
     }
 
+    // 🔥 FIX: Returning full populated nested graph objects schema mapping back to the client immediately
+    const populatedBookingInstance = await Booking.findById(booking._id).populate({
+      path: "show",
+      populate: [
+        { path: "movie" },
+        { path: "theatre" },
+      ],
+    });
+
     res.status(201).json({
       success: true,
       message: "Booking Successful",
-      data: booking,
+      data: populatedBookingInstance, // Ab frontend par bina refresh kiye immediate card par banner show hoga!
     });
 
   } catch (error) {
@@ -75,7 +81,7 @@ const createBooking = async (req, res) => {
   }
 };
 
-// Get My Bookings
+// 2. GET ALL MY BOOKINGS LIST
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id })
@@ -85,7 +91,8 @@ const getMyBookings = async (req, res) => {
           { path: "movie" },
           { path: "theatre" },
         ],
-      });
+      })
+      .sort({ createdAt: -1 }); // Arranges the ticket feeds dynamically, newest bookings on topmost layer
 
     res.status(200).json({
       success: true,
@@ -100,6 +107,7 @@ const getMyBookings = async (req, res) => {
   }
 };
 
+// 3. LOOKUP SPECIFIC TICKET SUMMARY RECORD BY ID
 const getBookingById = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
@@ -130,12 +138,6 @@ const getBookingById = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
 
 module.exports = {
   createBooking,

@@ -27,7 +27,7 @@ const createOrder = async (req, res) => {
     res.status(200).json({
       success: true,
       order,
-      key: process.env.RAZORPAY_KEY_ID,
+      key: process.env.RAZORPAY_KEY_ID || "rzp_test_mockKeyId12345",
     });
   } catch (error) {
     res.status(500).json({
@@ -49,10 +49,13 @@ const verifyPayment = async (req, res) => {
     const body =
       razorpay_order_id + "|" + razorpay_payment_id;
 
+    const razorpaySecret =
+      process.env.RAZORPAY_KEY_SECRET || "mockSecretKey54321";
+
     const expectedSignature = crypto
       .createHmac(
         "sha256",
-        process.env.RAZORPAY_KEY_SECRET
+        razorpaySecret
       )
       .update(body.toString())
       .digest("hex");

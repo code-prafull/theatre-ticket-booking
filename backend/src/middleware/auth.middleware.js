@@ -1,42 +1,47 @@
+// File Path: middleware/auth.middleware.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 
 const protect = async (req, res, next) => {
   try {
     let token;
+    const authHeader = req.headers.authorization || req.headers.Authorization;
 
-    // Cookie se token
-    if (req.cookies.token) {
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else if (req.cookies?.token) {
       token = req.cookies.token;
-    }
-
-    // Header se token
-    if (
-      !token &&
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
     }
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Not authorized. Please login.",
+        message: "Not authorized, token missing",
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "CU_SECRET_MOCK_SALT_8821"
+    );
 
-    req.user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized, user not found",
+      });
+    }
 
+    req.user = user;
     next();
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired token",
+      message: "Not authorized, token invalid or expired",
     });
   }
 };
 
+// 🔥 Alag se default export hona chahiye taaki bina curly braces ke require ho sake
 module.exports = protect;
