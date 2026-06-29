@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// File Path: routes/AppRoutes.jsx
+import { Routes, Route, Navigate } from "react-router-dom";
 
-// Pages
+// Core Consumer Pages
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -10,134 +11,112 @@ import ShowSelection from "../pages/ShowSelection";
 import SeatSelection from "../pages/SeatSelection";
 import Checkout from "../pages/Checkout";
 import Payment from "../pages/Payment";
+import Profile from "../pages/Profile";
 import MyBooking from "../pages/MyBooking";
+import Wishlist from "../pages/Wishlist";
+import ProtectedRoute from "../components/shared/ProtectedRoute";
+import Ticket from "../pages/Ticket";
 
-// Admin
+
+import AdminRoute from "../components/shared/AdminRoute";
 import Dashboard from "../pages/admin/Dashboard";
 import Movies from "../pages/admin/Movies";
 import Theatres from "../pages/admin/Theatres";
 import Show from "../pages/admin/Show";
 import Booking from "../pages/admin/Booking";
-import ProtectedRoute from "../components/shared/ProtectedRoute";
 
 const AppRoutes = () => {
   return (
-    <BrowserRouter>
-      <Routes>
+    <Routes>
+      {/* Saare routes bina kisi barrier ke, seedhe render honge */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-        {/* User Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
-        <Route path="/movies/:id" element={<MovieDetails />} />
-
-        <Route
-          path="/theatres/:movieId"
-          element={<TheatreSelection />}
-        />
-
-        <Route
-          path="/shows/:movieId/:theatreId"
-          element={<ShowSelection />}
-        />
-
-        <Route
-  path="/seats/:showId"
-  element={
-    <ProtectedRoute>
-      <SeatSelection />
-    </ProtectedRoute>
-  }
-/>
-
-        <Route
-  path="/checkout"
-  element={
-    <ProtectedRoute>
-      <Checkout />
-    </ProtectedRoute>
-  }
-/>
-
-        <Route
-  path="/payment"
-  element={
-    <ProtectedRoute>
-      <Payment />
-    </ProtectedRoute>
-  }
-/>
-
-        <Route
-  path="/my-bookings"
-  element={
-    <ProtectedRoute>
-      <MyBooking />
-    </ProtectedRoute>
-  }
-/>
-
-        {/* Admin Routes */}
-
-        <Route
-  path="/admin"
-  element={
-    <ProtectedRoute>
-      <Dashboard />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/admin/movies"
-  element={
-    <ProtectedRoute>
+      <Route path="/" element={<Home />} />
+      <Route path="/movie/:id" element={<MovieDetails />} />
+      <Route path="/movies/:id" element={<MovieDetails />} />
       
-        <Movies />
-    </ProtectedRoute>
-  }
-/>
+      <Route
+        path="/theatre-selection"
+        element={
+          <ProtectedRoute>
+            <TheatreSelection />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/show-selection" element={<ShowSelection />} />
+      <Route
+        path="/seat-selection/:showId"
+        element={
+          <ProtectedRoute>
+            <SeatSelection />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment"
+        element={
+          <ProtectedRoute>
+            <Payment />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-bookings"
+        element={
+          <ProtectedRoute>
+            <MyBooking />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wishlist"
+        element={
+          <ProtectedRoute>
+            <Wishlist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ticket/:id"
+        element={
+          <ProtectedRoute>
+            <Ticket />
+          </ProtectedRoute>
+        }
+      />
 
-<Route
-  path="/admin/theatres"
-  element={
-    <ProtectedRoute>
-      <Theatres />
-    </ProtectedRoute>
-  }
-/>
+      <Route path="*" element={<Navigate to="/" replace />} />
 
-<Route
-  path="/admin/shows"
-  element={
-    <ProtectedRoute>
-      <Show />
-    </ProtectedRoute>
-  }
-/>
+        <Route path="/admin" element={<AdminRoute />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="movies" element={<Movies />} />
+        <Route path="theatres" element={<Theatres />} />
+        <Route path="shows" element={<Show />} />
+        <Route path="bookings" element={<Booking />} />
+      </Route>
 
-<Route
-  path="/admin/bookings"
-  element={
-    <ProtectedRoute>
-      <Booking />
-    </ProtectedRoute>
-  }
-/>
-        {/* 404 */}
 
-        <Route
-          path="*"
-          element={
-            <h1 className="text-center mt-20 text-4xl">
-              404 Page Not Found
-            </h1>
-          }
-        />
 
-      </Routes>
-    </BrowserRouter>
+    </Routes>
   );
 };
 

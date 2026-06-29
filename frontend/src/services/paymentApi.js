@@ -1,9 +1,9 @@
 import API from "./axios";
 
 export const createOrder = (bookingId) =>
-  API.post("/payment/create-order", {
+  API.post("/payments/create-order", {
     bookingId,
   });
 
 export const verifyPayment = (data) =>
-  API.post("/payment/verify", data);
+  API.post("/payments/verify", data);

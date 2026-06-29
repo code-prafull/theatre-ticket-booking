@@ -1,24 +1,20 @@
+// File Path: pages/admin/Movies.jsx
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import API from "../../services/axios";
 
 import AdminLayout from "../../components/admin/AdminLayout";
 import Modal from "../../components/shared/Modal";
 import MovieForm from "../../components/admin/MovieForm";
-
-import {
-  getMovies,
-  createMovie,
-  updateMovie,
-  deleteMovie,
-} from "../../services/adminApi";
+import Loader from "../../components/shared/Loader";
+import toast from "react-hot-toast";
 
 const Movies = () => {
   const [movies, setMovies] = useState([]);
-
-  const [open, setOpen] = useState(false);
-
-  const [selectedMovie, setSelectedMovie] =
-    useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Modal toggle and editing operational tracker states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
     fetchMovies();
@@ -26,261 +22,174 @@ const Movies = () => {
 
   const fetchMovies = async () => {
     try {
-      const { data } = await getMovies();
+      const { data } = await API.get("/movies");
+      setMovies(data.data || []);
+    } catch (err) {
+      console.log("Error catching film registries:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      setMovies(data.data);
+  const openAddModal = () => {
+    setSelectedMovie(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (movie) => {
+    setSelectedMovie(movie);
+    setIsModalOpen(true);
+  };
+
+  const formSubmitHandler = async (formData) => {
+    try {
+      if (selectedMovie) {
+        // Edit Operation pipeline
+        await API.put(`/movies/${selectedMovie._id}`, formData);
+        toast.success("Movie Updated Successfully");
+      } else {
+        // Create Operation pipeline
+        await API.post("/movies", formData);
+        toast.success("Movie Added Successfully");
+      }
+      setIsModalOpen(false);
+      fetchMovies();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Operation submission failure");
+    }
+  };
+
+  const deleteMovie = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this movie entity?")) return;
+    try {
+      await API.delete(`/movies/${id}`);
+      toast.success("Movie Removed");
+      fetchMovies();
     } catch (err) {
       console.log(err);
+      toast.error("Failed to delete movie execution registry entry.");
     }
   };
 
-  const handleAdd = () => {
-    setSelectedMovie(null);
-
-    setOpen(true);
-  };
-
-  const handleEdit = (movie) => {
-    setSelectedMovie(movie);
-
-    setOpen(true);
-  };
-
-  const handleDelete = async (id) => {
-    const confirmDelete =
-      window.confirm(
-        "Delete this movie?"
-      );
-
-    if (!confirmDelete) return;
-
-    try {
-      await deleteMovie(id);
-
-      toast.success("Movie Deleted");
-
-      fetchMovies();
-
-    } catch (err) {
-
-      toast.error("Delete Failed");
-
-    }
-  };
-
-  const handleSubmit = async (
-    formData
-  ) => {
-    try {
-
-      if (selectedMovie) {
-
-        await updateMovie(
-          selectedMovie._id,
-          formData
-        );
-
-        toast.success(
-          "Movie Updated"
-        );
-
-      } else {
-
-        await createMovie(
-          formData
-        );
-
-        toast.success(
-          "Movie Added"
-        );
-
-      }
-
-      setOpen(false);
-
-      fetchMovies();
-
-    } catch (err) {
-
-      toast.error(
-        err.response?.data?.message ||
-          "Something went wrong"
-      );
-
-    }
-  };
+  if (loading) return <Loader />;
 
   return (
     <AdminLayout>
+      <div className="w-full flex flex-col gap-6 text-left select-none">
+        
+        {/* Dynamic Context Section Heading Bar */}
+        <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Manage Movies Catalog
+            </h1>
+            <p className="text-xs text-gray-400 mt-1">
+              Inject catalog listings, edit cinematic assets details, and control global visibility bounds.
+            </p>
+          </div>
+          
+          <button
+            type="button"
+            onClick={openAddModal}
+            className="w-full sm:w-auto bg-[#5B50E6] hover:bg-[#493fd3] text-white text-xs font-bold py-3.5 px-6 rounded-xl shadow-lg transition-all active:scale-95"
+          >
+            + Add New Movie
+          </button>
+        </div>
 
-      <div className="flex justify-between items-center mb-8">
-
-        <h1 className="text-4xl font-bold">
-          Movies
-        </h1>
-
-        <button
-          onClick={handleAdd}
-          className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg"
-        >
-          + Add Movie
-        </button>
-
-      </div>
-
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
-
-        <table className="w-full">
-
-          <thead className="bg-black text-white">
-
-            <tr>
-
-              <th className="p-4">
-                Poster
-              </th>
-
-              <th className="p-4">
-                Title
-              </th>
-
-              <th className="p-4">
-                Language
-              </th>
-
-              <th className="p-4">
-                Rating
-              </th>
-
-              <th className="p-4">
-                Status
-              </th>
-
-              <th className="p-4">
-                Action
-              </th>
-
-            </tr>
-
-          </thead>
-
-          <tbody>
-                        {movies.length === 0 ? (
-
-              <tr>
-
-                <td
-                  colSpan="6"
-                  className="text-center py-10"
-                >
-                  No Movies Found
-                </td>
-
+        {/* HIGH-FIDELITY ASSETS LEDGER GRID TABLE */}
+        <div className="w-full overflow-x-auto rounded-2xl border border-white/5 bg-[#16161C] shadow-2xl scrollbar-none">
+          <table className="w-full min-w-[800px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-white/5 bg-white/5 text-[11px] font-extrabold text-gray-400 uppercase tracking-widest select-none">
+                <th className="p-4 sm:p-5 w-24 text-center">Visual Poster</th>
+                <th className="p-4 sm:p-5">Feature Title</th>
+                <th className="p-4 sm:p-5">Genre</th>
+                <th className="p-4 sm:p-5">Language</th>
+                <th className="p-4 sm:p-5">Standard Rating</th>
+                <th className="p-4 sm:p-5 text-right">Console Operations</th>
               </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 text-xs text-gray-300 font-medium">
+              {movies.length > 0 ? (
+                movies.map((movie) => (
+                  <tr key={movie._id} className="hover:bg-white/[0.02] transition-colors">
+                    
+                    {/* Poster Element CDN Cell */}
+                    <td className="p-4 text-center shrink-0">
+                      <img
+                        src={movie.poster || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1025&auto=format&fit=crop"}
+                        alt={movie.title}
+                        className="w-12 h-16 object-cover rounded-lg bg-gray-900 border border-white/5 shadow-md mx-auto"
+                      />
+                    </td>
 
-            ) : (
+                    {/* Movie Title */}
+                    <td className="p-4 sm:p-5 font-bold text-white max-w-[160px] truncate">
+                      {movie.title}
+                    </td>
 
-              movies.map((movie) => (
+                    {/* Genres Dynamic Array Fallback Rendering mapping layout lines safely */}
+                    <td className="p-4 sm:p-5 text-gray-400 max-w-[150px] truncate">
+                      {Array.isArray(movie.genre) ? movie.genre.join(", ") : movie.genre || "General"}
+                    </td>
 
-                <tr
-                  key={movie._id}
-                  className="border-b hover:bg-gray-50 text-center"
-                >
+                    {/* Language */}
+                    <td className="p-4 sm:p-5 text-gray-400">
+                      {movie.language || "English"}
+                    </td>
 
-                  <td className="p-3">
+                    {/* Rating Benchmarks */}
+                    <td className="p-4 sm:p-5">
+                      <div className="flex items-center gap-1 font-bold text-white">
+                        <span className="text-[#5B50E6] text-sm">★</span>
+                        <span>{movie.rating ? Number(movie.rating).toFixed(1) : "5.0"}</span>
+                      </div>
+                    </td>
 
-                    <img
-                      src={
-                        movie.poster ||
-                        "https://placehold.co/80x120"
-                      }
-                      alt={movie.title}
-                      className="w-16 h-20 object-cover rounded mx-auto"
-                    />
+                    {/* Interaction Buttons Control row stack handles */}
+                    <td className="p-4 sm:p-5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(movie)}
+                          className="text-xs font-bold text-white bg-[#5B50E6]/10 hover:bg-[#5B50E6] border border-[#5B50E6]/20 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteMovie(movie._id)}
+                          className="text-xs font-bold text-gray-400 hover:text-red-400 bg-white/5 hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
 
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="text-center py-16 text-sm text-gray-500">
+                    No cinematic movies entities currently registered inside repository files logs.
                   </td>
-
-                  <td className="font-semibold">
-                    {movie.title}
-                  </td>
-
-                  <td>
-                    {movie.language}
-                  </td>
-
-                  <td>
-                    ⭐ {movie.rating}
-                  </td>
-
-                  <td>
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-white ${
-                        movie.status ===
-                        "Now Showing"
-                          ? "bg-green-600"
-                          : "bg-yellow-500"
-                      }`}
-                    >
-                      {movie.status}
-                    </span>
-
-                  </td>
-
-                  <td className="space-x-2">
-
-                    <button
-                      onClick={() =>
-                        handleEdit(movie)
-                      }
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        handleDelete(movie._id)
-                      }
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                    >
-                      Delete
-                    </button>
-
-                  </td>
-
                 </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-              ))
-
-            )}
-
-          </tbody>
-
-        </table>
+        {/* HIGH-FIDELITY RESPONSIVE MODAL GATEWAY WRAPPING FORM */}
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <MovieForm 
+            movie={selectedMovie} 
+            onSubmit={formSubmitHandler} 
+            onCancel={() => setIsModalOpen(false)} 
+          />
+        </Modal>
 
       </div>
-            <Modal
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          setSelectedMovie(null);
-        }}
-      >
-        <h2 className="text-2xl font-bold mb-5">
-          {selectedMovie ? "Update Movie" : "Add Movie"}
-        </h2>
-
-        <MovieForm
-          movie={selectedMovie}
-          onSubmit={handleSubmit}
-          onCancel={() => {
-            setOpen(false);
-            setSelectedMovie(null);
-          }}
-        />
-      </Modal>
-
     </AdminLayout>
   );
 };
