@@ -11,12 +11,6 @@
 
 ---
 
-## 📸 Screenshots
-
-> *(Add screenshots of your app here)*
-
----
-
 ## ✨ Features
 
 ### Level 1 (Core)
