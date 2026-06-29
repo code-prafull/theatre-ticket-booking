@@ -4,12 +4,7 @@
 
 ---
 
-## 🚀 Live Demo
-
-- **Frontend:** [your-deployed-link.com](#)
-- **Backend API:** [your-api-link.com/api](#)
-
----
+## 🚀 Live Demo[https://theatre-ticket-booking-iz2x.vercel.app/]
 
 ## ✨ Features
 
