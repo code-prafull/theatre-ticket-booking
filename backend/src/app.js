@@ -18,7 +18,25 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+// 🔥 PRODUCTION-READY DYNAMIC CORS HANDSHAKE MATRIX
+const allowedOrigins = [
+  "http://localhost:5173",   // Local testing frontend ke liye
+  process.env.FRONTEND_URL   // Live Vercel Frontend Link (Render ke dashboard se automatic uthayega)
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Agar request bina origin ke hai (jaise Postman) ya allowed list me hai, toh access allow karo
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS Policy Block: Access Denied for this Origin!"));
+    }
+  },
+  credentials: true // Cookies aur token extraction handshake ke liye mandatory hai
+}));
+
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
@@ -35,15 +53,10 @@ app.use("/api/shows", showRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);
 
-// File Path: src/app.js (Backend)
-
-// ... tumhaare baaki saare app.use() lines ke thik neeche aur module.exports se thik upar:
-
 const protect = require("./middleware/auth.middleware");
 const { getProfile } = require("./controllers/auth.controller");
 
 // 🔥 GLOBAL ABSOLUTE FALLBACK ROUTE MESH:
-// Agar koi bhi route file mismatch karegi, ye direct main port se data pipe karega
 app.get("/api/auth/profile", protect, getProfile);
 
 module.exports = app;
