@@ -19,25 +19,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// 🔥 PRODUCTION-READY DYNAMIC CORS HANDSHAKE MATRIX
+// 🔥 FOOLPROOF ABSOLUTE PRODUCTION CORS MATRIX
 const allowedOrigins = [
-  "http://localhost:5173",   // Local testing frontend ke liye
-  process.env.FRONTEND_URL   // Live Vercel Frontend Link (Render ke dashboard se automatic uthayega)
+  "http://localhost:5173",                             // Local Testing Frontend
+  "https://theatre-ticket-booking-iz2x.vercel.app",   // Teri exact live frontend link (Bina slash ke)
+  process.env.FRONTEND_URL                             // Backup dynamic layer
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Agar request bina origin ke hai (jaise Postman) ya allowed list me hai, toh access allow karo
+    // Agar local call hai, postman hai, ya allowedOrigins mein se koi bhi match ho jaye
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log("CORS Blocked for Origin:", origin);
       callback(new Error("CORS Policy Block: Access Denied for this Origin!"));
     }
   },
-  credentials: true // Cookies aur token extraction handshake ke liye mandatory hai
+  credentials: true // Cookies aur token transmission ke liye mandatory hai
 }));
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false, // Static images ya resources block na hon isliye safety layer
+}));
 app.use(compression());
 app.use(morgan("dev"));
 
@@ -45,7 +49,7 @@ app.get("/", (req, res) => {
   res.status(200).json({ success: true, message: "API Running Clean 🚀" });
 });
 
-// Wapas saare routing models bina kisi strict checkpoint ke seedhe map hain
+// Saare routing models map hain
 app.use("/api/auth", authRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/theatres", theatreRoutes);
