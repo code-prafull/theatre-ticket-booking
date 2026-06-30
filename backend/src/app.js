@@ -23,6 +23,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   "http://localhost:5173",                             // Local Testing Frontend
   "https://theatre-ticket-booking-iz2x.vercel.app",   // Teri exact live frontend link (Bina slash ke)
+  "https://theatre-ticket-booking.vercel.app",        // Main production frontend URL
   process.env.FRONTEND_URL                             // Backup dynamic layer
 ];
 
