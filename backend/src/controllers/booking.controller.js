@@ -7,12 +7,27 @@ const sendBookingMail = require("../utils/sendBookingMail");
 // 1. CREATE NEW BOOKING TRANSACTION LOG (BYPASS LAYER INTEGRATED)
 const createBooking = async (req, res) => {
   try {
+    console.log("🔥 BOOKING REQUEST RECEIVED:", {
+      body: req.body,
+      user: req.user?._id,
+      headers: req.headers.authorization ? "Token Present" : "No Token"
+    });
+
     const { showId, seats } = req.body;
     const userId = req.user._id;
+
+    if (!showId || !seats || !Array.isArray(seats) || seats.length === 0) {
+      console.log("❌ INVALID PAYLOAD:", { showId, seats });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking parameters: showId and seats are required",
+      });
+    }
 
     // Find Show
     const show = await Show.findById(showId);
     if (!show) {
+      console.log("❌ SHOW NOT FOUND:", showId);
       return res.status(404).json({
         success: false,
         message: "Show parameters not found",
@@ -25,6 +40,7 @@ const createBooking = async (req, res) => {
     );
 
     if (booked.length > 0) {
+      console.log("❌ SEATS ALREADY BOOKED:", booked);
       return res.status(400).json({
         success: false,
         message: `Seats already booked: ${booked.join(", ")}`,
@@ -41,6 +57,8 @@ const createBooking = async (req, res) => {
       seats,
       totalAmount,
     });
+
+    console.log("✅ BOOKING CREATED:", booking._id);
 
     // Update Show seats layout tracking indices array
     show.bookedSeats.push(...seats);
@@ -68,6 +86,8 @@ const createBooking = async (req, res) => {
       ],
     });
 
+    console.log("✅ BOOKING POPULATED SUCCESSFULLY");
+
     // Success response pipe direct frontend ko navigation trigger dega
     res.status(201).json({
       success: true,
@@ -76,7 +96,7 @@ const createBooking = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("CRITICAL BOOKING CRASH:", error);
+    console.error("❌ CRITICAL BOOKING CRASH:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Internal Booking Pipeline Rejection",
