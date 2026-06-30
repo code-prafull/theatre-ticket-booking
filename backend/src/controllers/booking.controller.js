@@ -4,7 +4,7 @@ const Show = require("../models/show.model");
 const User = require("../models/user.model");
 const sendBookingMail = require("../utils/sendBookingMail");
 
-// 1. CREATE NEW BOOKING TRANSACTION LOG
+// 1. CREATE NEW BOOKING TRANSACTION LOG (BYPASS LAYER INTEGRATED)
 const createBooking = async (req, res) => {
   try {
     const { showId, seats } = req.body;
@@ -15,7 +15,7 @@ const createBooking = async (req, res) => {
     if (!show) {
       return res.status(404).json({
         success: false,
-        message: "Show not found",
+        message: "Show parameters not found",
       });
     }
 
@@ -34,7 +34,7 @@ const createBooking = async (req, res) => {
     // Total Amount Calculations
     const totalAmount = seats.length * show.ticketPrice;
 
-    // Create Booking
+    // Create Booking inside Database
     const booking = await Booking.create({
       user: userId,
       show: showId,
@@ -46,16 +46,20 @@ const createBooking = async (req, res) => {
     show.bookedSeats.push(...seats);
     await show.save();
 
-    // Send Confirmation Email safely
+    // 🔥 SAFE EMAIL BYPASS: Email fail hone par backend crash NAI HOGA ab!
     try {
       const user = await User.findById(userId);
-      await sendBookingMail(user, booking, show);
-      console.log("✅ Booking confirmation email sent");
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        await sendBookingMail(user, booking, show);
+        console.log("✅ Booking confirmation email sent");
+      } else {
+        console.log("⚠️ Email variables missing, skipping mail send to prevent node crash.");
+      }
     } catch (mailError) {
-      console.log("❌ Email Error:", mailError.message);
+      console.log("❌ Email Service Handshake Error:", mailError.message);
     }
 
-    // 🔥 NESTED GRAPH POPULATION (This works 100% perfectly on production web layers)
+    // 🔥 NESTED GRAPH POPULATION (Safe production architecture mapping)
     const populatedBookingInstance = await Booking.findById(booking._id).populate({
       path: "show",
       populate: [
@@ -64,17 +68,18 @@ const createBooking = async (req, res) => {
       ],
     });
 
+    // Success response pipe direct frontend ko navigation trigger dega
     res.status(201).json({
       success: true,
-      message: "Booking Successful",
+      message: "Booking Instance Created Successfully",
       data: populatedBookingInstance, 
     });
 
   } catch (error) {
-    console.error("Booking Controller Main Crash Log:", error);
+    console.error("CRITICAL BOOKING CRASH:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Internal Booking Pipeline Rejection",
     });
   }
 };
@@ -85,10 +90,7 @@ const getMyBookings = async (req, res) => {
     const bookings = await Booking.find({ user: req.user._id })
       .populate({
         path: "show",
-        populate: [
-          { path: "movie" },
-          { path: "theatre" },
-        ],
+        populate: [{ path: "movie" }, { path: "theatre" }],
       })
       .sort({ createdAt: -1 });
 
@@ -98,10 +100,7 @@ const getMyBookings = async (req, res) => {
       data: bookings,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -111,29 +110,17 @@ const getBookingById = async (req, res) => {
     const booking = await Booking.findById(req.params.id)
       .populate({
         path: "show",
-        populate: [
-          { path: "movie" },
-          { path: "theatre" },
-        ],
+        populate: [{ path: "movie" }, { path: "theatre" }],
       })
       .populate("user", "name email");
 
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found",
-      });
+      return res.status(404).json({ success: false, message: "Booking not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: booking,
-    });
+    res.status(200).json({ success: true, data: booking });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
