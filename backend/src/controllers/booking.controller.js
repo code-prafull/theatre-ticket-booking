@@ -1,4 +1,4 @@
-// File Path: controllers/booking.controller.js
+// File Path: src/controllers/booking.controller.js
 const Booking = require("../models/booking.model");
 const Show = require("../models/show.model");
 const User = require("../models/user.model");
@@ -46,9 +46,6 @@ const createBooking = async (req, res) => {
     show.bookedSeats.push(...seats);
     await show.save();
 
-    // Populate Movie & Theatre inside independent show references
-    await show.populate("movie theatre");
-
     // Send Confirmation Email safely
     try {
       const user = await User.findById(userId);
@@ -58,7 +55,7 @@ const createBooking = async (req, res) => {
       console.log("❌ Email Error:", mailError.message);
     }
 
-    // 🔥 FIX: Returning full populated nested graph objects schema mapping back to the client immediately
+    // 🔥 NESTED GRAPH POPULATION (This works 100% perfectly on production web layers)
     const populatedBookingInstance = await Booking.findById(booking._id).populate({
       path: "show",
       populate: [
@@ -70,10 +67,11 @@ const createBooking = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Booking Successful",
-      data: populatedBookingInstance, // Ab frontend par bina refresh kiye immediate card par banner show hoga!
+      data: populatedBookingInstance, 
     });
 
   } catch (error) {
+    console.error("Booking Controller Main Crash Log:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -92,7 +90,7 @@ const getMyBookings = async (req, res) => {
           { path: "theatre" },
         ],
       })
-      .sort({ createdAt: -1 }); // Arranges the ticket feeds dynamically, newest bookings on topmost layer
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
