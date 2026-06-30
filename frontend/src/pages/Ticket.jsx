@@ -38,6 +38,16 @@ const Ticket = () => {
     const load = async () => {
       try {
         setLoading(true);
+        
+        // 🔥 DUMMY FLOW: Check if booking data is passed via location.state
+        const locationState = window.history.state?.state || window.history.state;
+        if (locationState?.booking) {
+          setBooking(locationState.booking);
+          setLoading(false);
+          return;
+        }
+
+        // Fallback: Fetch from API for real bookings
         const { data } = await API.get(`/bookings/${id}`);
         const fetched = data?.data || data;
         setBooking(fetched);

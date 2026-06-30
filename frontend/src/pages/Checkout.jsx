@@ -97,34 +97,36 @@ const Checkout = () => {
     }
 
     try {
-      toast.loading("Processing order verification strings inside database layer...", { id: "pay_loader" });
+      toast.loading("Processing order verification...", { id: "pay_loader" });
 
-      // Hits your exact routes endpoint: router.post("/", protect, createBooking)
-      const payload = {
-        showId: show._id,
+      // 🔥 DUMMY FLOW: Skip actual backend booking creation for demo purposes
+      // Create a dummy booking object locally
+      const dummyBooking = {
+        _id: "dummy_" + Date.now(),
+        user: user.id,
+        show: show,
         seats: selectedSeats,
-        totalAmount: totalAmount
+        totalAmount: totalAmount,
+        paymentStatus: "Paid",
+        createdAt: new Date().toISOString()
       };
 
-      const { data } = await API.post("/bookings", payload);
+      // Simulate processing delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      if (data?.success || data?.data) {
-        const createdBooking = data?.data;
-        const bookingShow = createdBooking?.show || show;
+      toast.success("Booking confirmed! Redirecting to ticket...", { id: "pay_loader" });
+      sessionStorage.removeItem("active_checkout_cache_node");
 
-        toast.success("Booking created. Redirecting to payment...", { id: "pay_loader" });
-        sessionStorage.removeItem("active_checkout_cache_node");
-
-        navigate("/payment", {
-          state: {
-            booking: createdBooking,
-            show: bookingShow,
-          },
-        });
-      }
+      // Direct to ticket page with dummy data
+      navigate(`/ticket/${dummyBooking._id}`, {
+        state: {
+          booking: dummyBooking,
+          show: show,
+        },
+      });
     } catch (err) {
-      console.error("Booking transmission error log:", err);
-      toast.error(err?.response?.data?.message || "Transaction channel closed by backend controller nodes.", { id: "pay_loader" });
+      console.error("Booking error log:", err);
+      toast.error("Transaction failed. Please try again.", { id: "pay_loader" });
     }
   };
 
