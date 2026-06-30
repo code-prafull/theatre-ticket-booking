@@ -2,11 +2,10 @@
 const Razorpay = require("razorpay");
 require("dotenv").config(); // Ensure env variables are loaded right here
 
-// 🔥 SAFE INITIALIZATION MESH: Provides a strict fallback string if env is missing
-// This prevents the SDK from throwing a fatal crash error on startup
+// 🔥 SAFE INITIALIZATION MESH: Yahan apni real keys ka strict fallback daal rahe hain
 const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_mockKeyId12345", 
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "mockSecretKey54321"
-});
+  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_T1vo1WAgcMir8I", // 👈 
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "t1cCngw3VBCksss73CLyohA0" // 👈 
 
+})
 module.exports = razorpayInstance;
