@@ -1,9 +1,10 @@
+// File Path: src/services/paymentApi.js
 import API from "./axios";
 
-export const createOrder = (bookingId) =>
-  API.post("/payments/create-order", {
-    bookingId,
-  });
+export const createOrder = (bookingId) => {
+  return API.post("/payments/create-order", { bookingId });
+};
 
-export const verifyPayment = (data) =>
-  API.post("/payments/verify", data);
+export const verifyPayment = (paymentData) => {
+  return API.post("/payments/verify", paymentData); // paymentData takes object structure directly
+};

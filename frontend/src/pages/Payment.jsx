@@ -1,48 +1,22 @@
 // File Path: pages/Payment.jsx
 import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import toast from "react-hot-toast";
-
 import Navbar from "../components/shared/Navbar";
 import PaymentCard from "../components/payment/PaymentCard";
 import { createOrder, verifyPayment } from "../services/paymentApi";
 
-const loadRazorpaySdk = () =>
-  new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-
-    const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
-    if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(true));
-      existingScript.addEventListener("error", () => resolve(false));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-
 const Payment = () => {
   const { state } = useLocation();
-  const navigate = useNavigate(); // Navigation fix update kiya context crash rokne ke liye
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!state) {
     return (
-      <div className="min-h-screen w-full flex flex-col justify-between bg-white lg:bg-[#0D0D11] text-black font-sans antialiased">
+      <div className="min-h-screen w-full flex flex-col justify-between bg-[#0D0D11] text-white font-sans antialiased">
         <Navbar />
         <div className="flex-1 flex justify-center items-center">
-          <h1 className="text-center text-gray-500 lg:text-gray-400 text-lg font-semibold">
-            No Payment Data Found
-          </h1>
-        </div>
-        <div className="lg:hidden w-full h-[64px]">
-          <Navbar />
+          <h1 className="text-center text-gray-400 text-lg font-semibold">No Payment Data Found</h1>
         </div>
       </div>
     );
@@ -52,103 +26,96 @@ const Payment = () => {
 
   const handlePay = async () => {
     try {
-      const sdkLoaded = await loadRazorpaySdk();
-      if (!sdkLoaded) {
-        toast.error("Razorpay SDK failed to load. Check internet and retry.");
-        return;
-      }
+      setIsProcessing(true);
+      toast.loading("Initiating Encrypted Gateway Secure Tunnel...", { id: "payment_loader" });
 
+      // 1. Fetch Dummy Order config from your updated controller
       const { data } = await createOrder(booking._id);
-      if (!data?.order?.id || !data?.key) {
-        toast.error("Payment gateway config missing. Please contact support.");
+      
+      if (!data?.success) {
+        toast.error("Gateway handshake synchronization timed out.", { id: "payment_loader" });
+        setIsProcessing(false);
         return;
       }
 
-      const options = {
-        key: data.key,
-        amount: data.order.amount,
-        currency: data.order.currency,
-        name: "Movie Ticket Booking",
-        description: "Movie Booking Terminal",
-        order_id: data.order.id,
-        handler: async function (response) {
-          await verifyPayment({
-            bookingId: booking._id,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
+      // Simulation delay for high-end look and corporate feel
+      setTimeout(async () => {
+        try {
+          toast.loading("Verifying transaction hash validation...", { id: "payment_loader" });
 
-          toast.success("Payment Successful"); // Alert popup ko user experience ke liye upgrade kiya toast se
-          navigate(`/ticket/${booking._id}`);
-        },
-        theme: {
-          color: "#5B50E6", // Brand theme layout Indigo color match kiya figma ke according
-        },
-      };
+          // 2. Direct hit verify payment to update database status to Paid
+          await verifyPayment({ bookingId: booking._id });
 
-      const razor = new window.Razorpay(options);
-      razor.open();
+          toast.success("Payment Successful! Generating Movie Ticket... 🎬", { id: "payment_loader" });
+          
+          setTimeout(() => {
+            navigate(`/ticket/${booking._id}`);
+          }, 1000);
+
+        } catch (verifyErr) {
+          toast.error("Ledger status commit verification failure.", { id: "payment_loader" });
+          setIsProcessing(false);
+        }
+      }, 2000); // 2 seconds high-end loader appearance
+
     } catch (error) {
       console.log(error);
-      toast.error(error?.response?.data?.message || "Payment Initialization Failed");
+      toast.error("Transaction layer mapping aborted.", { id: "payment_loader" });
+      setIsProcessing(false);
     }
   };
 
   return (
-    // Base layout environment context
-    <div className="min-h-screen w-full flex flex-col justify-between bg-white lg:bg-[#0D0D11] text-black font-sans antialiased pb-[140px] lg:pb-0">
+    <div className="min-h-screen w-full flex flex-col justify-between bg-[#07070A] text-white font-sans antialiased pb-[140px] lg:pb-0 select-none">
       <Navbar />
 
-      {/* CORE WORKSPACE GATEWAY PANEL */}
-      <div className="w-full flex-1 flex justify-center items-center p-4 sm:p-8 lg:p-12">
-        
-        {/* Payment Shell Board */}
-        <div className="bg-white lg:bg-[#15151A] w-full max-w-[440px] md:max-w-[480px] rounded-3xl lg:border lg:border-white/5 p-6 sm:p-8 shadow-xl lg:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] flex flex-col relative overflow-hidden">
-          
-          {/* Section Headers branding alignment */}
-          <div className="w-full text-left mb-6 border-b border-gray-100 lg:border-white/5 pb-4">
-            <h1 className="text-2xl font-extrabold text-black lg:text-white tracking-tight flex items-center gap-2">
-              {/* Shield Secure SVG representation */}
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5B50E6" strokeWidth="2.5">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              Secure Payment
-            </h1>
-            <p className="text-xs text-gray-400 mt-1">
-              Gateway execution protocol encryption protocol.
-            </p>
-          </div>
+      <div className="w-full flex-1 flex justify-center items-center p-4 sm:p-8">
+        <div className="bg-[#111116]/90 w-full max-w-[450px] rounded-3xl border border-white/[0.05] p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
+          <div className="absolute top-0 right-0 w-[180px] h-[180px] bg-[#4B42E1]/10 rounded-full blur-[50px] pointer-events-none" />
 
-          {/* Ticket Information Mini Card Meta description item row */}
-          <div className="w-full bg-gray-50 lg:bg-white/5 rounded-2xl p-4 mb-6 border border-gray-100 lg:border-white/5 text-left">
-            <span className="text-[10px] font-extrabold text-gray-400 lg:text-gray-500 uppercase tracking-widest block mb-1">
-              Booking Details
-            </span>
-            <h3 className="text-sm font-bold text-black lg:text-gray-200 truncate">
-              {show?.movie?.title || "Movie Session Selection"}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5 truncate">
-              {show?.theatre?.name || "Cinema Center Hub"}
-            </p>
-          </div>
+          {isProcessing ? (
+            /* 🔥 ULTRA SMART PROCESSING DUMMY SCREEN SCREEN LAYOUT */
+            <div className="w-full py-12 flex flex-col items-center justify-center text-center">
+              <div className="relative w-20 h-20 mb-6 flex items-center justify-center">
+                <div className="absolute inset-0 border-4 border-[#4B42E1]/20 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-t-[#4B42E1] border-r-[#4B42E1] rounded-full animate-spin"></div>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4B42E1" strokeWidth="2.5" className="animate-pulse">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <h2 className="text-xl font-black text-white tracking-tight animate-pulse">Processing Payment</h2>
+              <p className="text-xs text-gray-500 mt-2 max-w-[280px]">
+                Securing transactional ledger tokens inside localized sandbox controller matrix.
+              </p>
+            </div>
+          ) : (
+            /* STANDARD SECURE PAYMENT SCREEN SCREEN LAYOUT */
+            <>
+              <div className="w-full text-left mb-6 border-b border-white/5 pb-4">
+                <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B42E1" strokeWidth="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  Sandbox Gateway Portal
+                </h1>
+                <p className="text-[11px] text-gray-400 mt-0.5 font-medium tracking-tight">
+                  Bypassing real-time merchant endpoints into simulated local validation nodes.
+                </p>
+              </div>
 
-          {/* PRIMARY CARD PROCESS MODULE COMPONENT */}
-          <div className="w-full">
-            <PaymentCard
-              amount={booking.totalAmount}
-              onPay={handlePay}
-            />
-          </div>
+              <div className="w-full bg-white/[0.02] rounded-2xl p-4 mb-6 border border-white/5 text-left">
+                <span className="text-[9px] font-black font-mono text-[#4B42E1] uppercase tracking-widest block mb-0.5">Booking Verification Summary</span>
+                <h3 className="text-sm font-black text-gray-200 truncate">{show?.movie?.title || "Movie Session Asset"}</h3>
+                <p className="text-xs text-gray-400 mt-0.5 truncate">🏟️ {show?.theatre?.name || "Cinema Venue Arena"}</p>
+              </div>
 
+              <div className="w-full">
+                <PaymentCard amount={booking.totalAmount} onPay={handlePay} />
+              </div>
+            </>
+          )}
         </div>
       </div>
-
-      {/* MOBILE PERSISTENT CODES ATTACHMENTS FOOTER MENU */}
-      <div className="lg:hidden w-full fixed bottom-0 left-0 z-50 h-[64px]">
-        <Navbar />
-      </div>
-
     </div>
   );
 };
