@@ -5,7 +5,7 @@ const API = axios.create({
   // 🔥 PRODUCTION-READY DYNAMIC BASE URL:
   // Vercel/Production par ye Render wali URL uthayega, aur local pc par localhost chalega!
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
-  timeout: 10000,
+  timeout: 30000, // Increased to 30 seconds for production deployment
   withCredentials: true,
 });
 
